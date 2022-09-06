@@ -23,8 +23,8 @@ GNU General Public License for more details.
 void
 main(void)
 {
-  oclSys testsim = cls_new_sys(1,0);
-  cls_load_sys_from_file(testsim, "./test.cl", sizeof(struct state_s));
+  oclSys testsim = cls_new_sys(2,0);
+  cls_load_sys_from_file(testsim, "./mandel.cl", sizeof(struct state_s));
 
   struct init_arg_s init_arg = {.z0={.x=X0, .y=Y0}, .dz={.x=DX, .y=DY}};
   struct main_arg_s main_arg;
@@ -43,8 +43,8 @@ main(void)
   cls_run_meas(testsim);
   struct output_s *out = malloc(sizeof(struct output_s));
   cls_get_meas(testsim, out);
+  cls_release_sys(testsim);
 
   for(int i = 0; i < VECLEN*VECLEN; i++) printf("%d,%f\n",out->lastc[i],out->abs[i]);
-  // printf("\n");
-  cls_release_sys(testsim);
+  printf("\n");
 }

@@ -31,7 +31,7 @@ update_k(global struct state_s *output,
   float_t abs = new.x*new.x + new.y*new.y;
   int_t mask = abs<=4.0;
 
-  output->states[ij] = new*mask+in*(1-mask); // update or hold
+  output->states[ij] = new*mask+z*(1-mask); // update or hold
   output->lastc[ij] = lcount+mask;
   output->z0[ij] = z0;
 }

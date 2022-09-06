@@ -1,11 +1,12 @@
 data=csvread("./build/mandel.dat");
 outdata=data(:,1);
-indata=data(:,2);
+indata=data(:,2)/2;
 outdata(outdata==max(outdata))=0;
 outdata=outdata/max(outdata);
-indata(indata>4.0)=4;
-indata(outdata!=0)=4;
-indata=sqrt(indata)/2;
-zdata = min(indata,log(outdata)/2+1);
+indata(indata>1.0)=1;
+indata(outdata!=0)=0;
+indata=sqrt(indata);
+outdata=sqrt(outdata);
+zdata = max(indata,outdata);
 zmat = flipud(reshape(zdata,sqrt(size(zdata,1))*[1,1]));
-imwrite(zmat,"./build/test.png");
+imwrite(zmat,"./build/mandel.png");

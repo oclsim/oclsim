@@ -16,7 +16,13 @@ GNU General Public License for more details.
 #ifndef MANDEL_HEADER
 #define MANDEL_HEADER
 
-#define ITER 10000
+// #define ITER 500
+// #define X0 0.0
+// #define Y0 0.0
+// #define DX 3.0/VECLEN
+// #define DY 3.0/VECLEN
+
+#define ITER 5000
 #define X0 -0.55520008
 #define Y0 -0.61964444
 #define DX 0.0000001l/VECLEN
