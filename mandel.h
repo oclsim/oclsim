@@ -13,8 +13,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 */
 
-#ifndef TEST_H_HEADER
-#define TEST_H_HEADER
+#ifndef MANDEL_HEADER
+#define MANDEL_HEADER
 
 #define ITER 10000
 #define X0 -0.55520008

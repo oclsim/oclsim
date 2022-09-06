@@ -14,7 +14,7 @@ GNU General Public License for more details.
 */
 
 #include "oclsim.h"
-#include "test.h"
+#include "mandel.h"
 
 #include <stdio.h>
 #include <time.h>

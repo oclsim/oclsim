@@ -1,4 +1,4 @@
-data=csvread("./build/test.dat");
+data=csvread("./build/mandel.dat");
 outdata=data(:,1);
 indata=data(:,2);
 outdata(outdata==max(outdata))=0;

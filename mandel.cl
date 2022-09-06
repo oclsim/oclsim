@@ -1,4 +1,4 @@
-#include "test.h"
+#include "mandel.h"
 
 kernel void
 init_k(global struct state_s *output,
