@@ -22,86 +22,70 @@ GNU General Public License for more details.
 
 int64_t millis()
 {
-    struct timespec now;
-    timespec_get(&now, TIME_UTC);
-    return ((int64_t) now.tv_sec) * 1000 + ((int64_t) now.tv_nsec) / 1000000;
+  struct timespec now;
+  timespec_get(&now, TIME_UTC);
+  return ((int64_t) now.tv_sec) * 1000 + ((int64_t) now.tv_nsec) / 1000000;
 }
 
 void
 main(void)
 {
-  float beta = 1.5;
-
   oclSys ising = cls_new_sys(2,0);
   cls_load_sys_from_file(ising, "./ising.cl", sizeof(struct state_s));
 
   struct init_arg_s init_arg;
   struct main_arg_s main_arg;
-  struct meas_arg_s meas_arg = {.idiv = 1};
+  struct meas_arg_s meas_arg = {.idiv = MEASDIV, .ioffset = -BUFFLEN/4-MEASDIV};
 
   uint rseed = (uint)time(NULL);
-	srand(rseed);
-  cl_uint new_seed = rand();
-  init_arg.rseed = new_seed;
-
-  for(int i = 0; i < PROB_L; i++)
-  {
-    main_arg.probs[i] = (cl_ulong)CL_UINT_MAX * PROB_MAX * ((i <= PROB_Z)? 1 : exp(-beta*(i-PROB_Z)));
-  }
-
-  int64_t start = millis();
-
-  cls_set_init_arg(ising, &init_arg, sizeof(init_arg), ISING_DIMS_2D);
-  cls_set_main_arg(ising, &main_arg, sizeof(main_arg), 1, ISING_DIMS_2D);
-  cls_set_meas_arg(ising, &meas_arg, sizeof(meas_arg), sizeof(state_t)*LOCAL_1D_LENGTH, sizeof(struct output_s), ISING_DIMS_1D);
-
-  cls_run_init(ising);
-  for(int i = 0; i < BUFFLEN; i++)
-  {
-    cls_run_update(ising);
-    cls_run_meas(ising);
-  }
+  srand(rseed);
 
   struct output_s *out = malloc(sizeof(struct output_s));
-  cls_get_meas(ising, out);
+
+  for(float temp = 2.0; temp < 3.0; temp+=0.05)
+  {
+    double mag = 0.0, mag2 = 0.0;
+
+    for(int i = 0; i < PROB_L; i++)
+    {
+      main_arg.probs[i] = (cl_ulong)CL_UINT_MAX * PROB_MAX * MIN(1.0, exp(-4.0*(i-PROB_Z)/temp));
+    }
+
+    for(int k = 0; k < REPEAT_SIM; k++)
+    {
+      cl_uint new_seed = rand();
+      init_arg.rseed = new_seed;
+
+      cls_set_init_arg(ising, &init_arg, sizeof(init_arg), ISING_DIMS_2D);
+      cls_set_main_arg(ising, &main_arg, sizeof(main_arg), 1, ISING_DIMS_2D);
+      cls_set_meas_arg(ising, &meas_arg, sizeof(meas_arg), sizeof(state_t)*LOCAL_1D_LENGTH, sizeof(struct output_s), ISING_DIMS_1D);
+
+      cls_run_init(ising);
+
+      for(int i = 0; i < BUFFLEN/4; i++)
+      {
+        cls_run_update(ising);
+      }
+
+      for(int i = 0; i < BUFFLEN/MEASDIV; i++)
+      {
+        for(int k = 0; k < MEASDIV; k++)
+        {
+          cls_run_update(ising);
+        }
+        cls_run_meas(ising);
+      }
+
+      cls_get_meas(ising, out);
+
+      for(int i = 0; i < BUFFLEN/MEASDIV; i++)
+      {
+        mag += (double)out->mag[i];
+        mag2 += pow(out->mag[i],2);
+      }
+    }
+    printf("%f %f %f\n", temp, mag/(BUFFLEN/MEASDIV*REPEAT_SIM), sqrt(mag2/(BUFFLEN/MEASDIV*REPEAT_SIM)));
+  }
+
   cls_release_sys(ising);
-
-  int64_t end = millis();
-  float seconds = (float)(end - start) / 1000;
-
-	// Print states/data
-	// printf("\e[1;1H\e[2J"); // clear screen
-  // for (int k = 0; k < BUFFLEN; k+=1)
-  // {
-  //   printf("\033[0;0H"); // Move cursor to (0,0)
-  //
-  //   // Print states
-  //   printf("┌");
-  //   for(int i = 0; i < 2*SIZEX/OVERSAMPLE+2; i++) printf("─");
-  //   printf("┐\n");
-  //
-  //   for (int i = 0; i < SIZEY; i+=OVERSAMPLE)
-  //   {
-  //     printf("│ ");
-  //     for (int j = 0; j < SIZEX; j+=OVERSAMPLE)
-  //     {
-  //       int sum = 0;
-  //       for(int iov = 0; iov < OVERSAMPLE; iov++)
-  //       {
-  //         for(int jov = 0; jov < OVERSAMPLE; jov++)
-  //         {
-  //           sum+=out->states[k][(i+iov)*SIZEX + (j+jov)];
-  //         }
-  //       }
-  //       printf("\033[48;5;%3dm  \e[0m",242 + 8*sum/(OVERSAMPLE*OVERSAMPLE));
-  //     }
-  //     printf("\e[0m │\n");
-  //   }
-  //
-  //   printf("└");
-  //   for(int i = 0; i < 2*SIZEX/OVERSAMPLE+2; i++) printf("─");
-  //   printf("┘\n");
-  // }
-
-  printf("exec time: %f s\n",seconds);
 }

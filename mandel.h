@@ -16,6 +16,7 @@ GNU General Public License for more details.
 #ifndef MANDEL_HEADER
 #define MANDEL_HEADER
 
+// Parameters:
 // #define ITER 500
 // #define X0 0.0
 // #define Y0 0.0

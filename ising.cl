@@ -85,8 +85,8 @@ measure_k(global struct output_s *output,
   size_t i = get_global_id(0),
          i_l = get_local_id(0),
          i_T = get_local_size(0);
-  uint iter = input->counter;
-  size_t out_i = iter/arg->idiv;
+  int iter = input->counter;
+  size_t out_i = (iter+arg->ioffset)/arg->idiv;
   state_t self_s = input->state[i];
   local state_t *local_buff = lc_skpd;
 
@@ -101,7 +101,6 @@ measure_k(global struct output_s *output,
   output->states[out_i][i] = self_s; // copy state
   if(i_l == 0)
   {
-    state_t part_mag = local_buff[0];
-    output->mag[out_i] += part_mag;
+    atomic_add(&output->mag[out_i], local_buff[0]);
   }
 }

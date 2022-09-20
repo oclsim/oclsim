@@ -19,12 +19,14 @@ GNU General Public License for more details.
 // Definitions & constants:
 #define SIZEX 64
 #define SIZEY 64
-#define NEIGH_N 4
-#define BUFFLEN 1024
+#define BUFFLEN (1024)
 #define VECLEN (SIZEX*SIZEY)
+#define NEIGH_N 4
 #define PROB_L (NEIGH_N+1)
-#define PROB_Z ((PROB_L-1)/2)
+#define PROB_Z (NEIGH_N/2)
 #define PROB_MAX 1.0
+#define MEASDIV 512
+#define REPEAT_SIM 256
 
 #define GLOBAL_1D_LENGTH (VECLEN)
 #define GLOBAL_1D_RANGE {VECLEN,0,0}
@@ -50,15 +52,15 @@ GNU General Public License for more details.
 
 // Typedefs:
 #ifdef __OPENCL_VERSION__
-typedef char state_t;
-typedef float out_t;
+typedef int state_t;
+typedef int out_t;
 typedef int int_t;
 typedef uint uint_t;
 typedef float float_t;
 typedef uint rand_st;
 #else
-typedef cl_char state_t;
-typedef cl_float out_t;
+typedef cl_int state_t;
+typedef cl_int out_t;
 typedef cl_int int_t;
 typedef cl_uint uint_t;
 typedef cl_float float_t;
@@ -74,30 +76,37 @@ typedef struct meas_arg_s* meas_arg_p;
 // Structs:
 struct output_s
 {
+  state_t states[BUFFLEN/MEASDIV][VECLEN];
+  out_t mag[BUFFLEN/MEASDIV];
+} __attribute__((__packed__));
+
+struct output2_s
+{
   state_t states[BUFFLEN][VECLEN];
   out_t mag[BUFFLEN];
-};
+} __attribute__((__packed__));
 
 struct state_s
 {
   state_t state[VECLEN];
   rand_st rseeds[VECLEN];
   int_t counter;
-};
+} __attribute__((__packed__));
 
 struct init_arg_s
 {
   rand_st rseed;
-};
+} __attribute__((__packed__));
 
 struct main_arg_s
 {
   uint_t probs[PROB_L];
-};
+} __attribute__((__packed__));
 
 struct meas_arg_s
 {
   uint_t idiv;
-};
+  int_t ioffset;
+} __attribute__((__packed__));
 
 #endif
